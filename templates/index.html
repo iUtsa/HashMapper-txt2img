@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HashMapper - Text to Image Fingerprints</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>HashMapper</h1>
+        <p>Visual Cryptanalysis Through Intentional Collisions</p>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <button class="tab-button active" data-tab="fingerprint">Generate Fingerprint</button>
+            <button class="tab-button" data-tab="experiments">Run Experiments</button>
+            <button class="tab-button" data-tab="about">About</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Fingerprint Tab -->
+            <div id="fingerprint" class="tab-pane active">
+                <div class="input-panel">
+                    <h2>Text Input</h2>
+                    <textarea id="text-input" placeholder="Enter text to generate a fingerprint..."></textarea>
+                    
+                    <div class="parameters">
+                        <div class="parameter">
+                            <label for="hash-function">Hash Function:</label>
+                            <select id="hash-function">
+                                <option selected>String Length</option>
+                                <option>First Character</option>
+                                <option>First + Last Character</option>
+                                <option>Character Sum</option>
+                                <option>Random</option>
+                            </select>
+                        </div>
+                        
+                        <div class="parameter">
+                            <label for="map-size">HashMap Size:</label>
+                            <input type="range" id="map-size" min="16" max="512" step="16" value="128">
+                            <span class="value-display">128</span>
+                        </div>
+                        
+                        <div class="parameter">
+                            <label for="salt-level">Salt Level:</label>
+                            <input type="range" id="salt-level" min="0" max="100" value="5">
+                            <span class="value-display">5%</span>
+                        </div>
+                        
+                        <div class="parameter">
+                            <label for="smooth-radius">Smooth Radius:</label>
+                            <input type="range" id="smooth-radius" min="0" max="10" value="2">
+                            <span class="value-display">2</span>
+                        </div>
+                    </div>
+                    
+                    <button id="generate-button" class="primary-button">Generate Fingerprint</button>
+                </div>
+                
+                <div id="results" class="results-panel hidden">
+                    <div class="fingerprints">
+                        <div class="fingerprint-card">
+                            <h3>Raw Fingerprint</h3>
+                            <img id="raw-fingerprint" alt="Raw fingerprint">
+                        </div>
+                        
+                        <div class="fingerprint-card">
+                            <h3>Enhanced Fingerprint</h3>
+                            <img id="enhanced-fingerprint" alt="Enhanced fingerprint">
+                        </div>
+                    </div>
+                    
+                    <div class="stats-panel">
+                        <h3>Text Statistics</h3>
+                        <div id="stats-display" class="stats-grid"></div>
+                    </div>
+                </div>
+                
+                <div id="loading" class="loading-panel hidden">
+                    <div class="spinner"></div>
+                    <p>Generating fingerprint...</p>
+                </div>
+            </div>
+            
+            <!-- Experiments Tab -->
+            <div id="experiments" class="tab-pane">
+                <h2>HashMap Experiments</h2>
+                <p>Run experiments to analyze HashMap behavior with different configurations.</p>
+                
+                <div class="experiment-options">
+                    <button class="experiment-button" data-type="collision">Collision Analysis</button>
+                    <button class="experiment-button" data-type="lookup">Lookup Performance</button>
+                    <button class="experiment-button" data-type="distribution">Bucket Distribution</button>
+                    <button class="experiment-button" data-type="hashfunction">Hash Function Comparison</button>
+                </div>
+                
+                <div id="experiment-results" class="experiment-results"></div>
+                
+                <div id="experiment-loading" class="loading-panel hidden">
+                    <div class="spinner"></div>
+                    <p>Running experiment...</p>
+                </div>
+            </div>
+            
+            <!-- About Tab -->
+            <div id="about" class="tab-pane">
+                <h2>About HashMapper</h2>
+                <p>HashMapper is an innovative tool that transforms text into visual fingerprints using the collision patterns of deliberately weak hash functions.</p>
+                
+                <h3>How It Works</h3>
+                <p>Text is processed through a HashMap with intentionally simple hash functions. The resulting collision patterns create unique visual representations that can reveal hidden structures in the text.</p>
+                
+                <h3>Hash Functions</h3>
+                <ul>
+                    <li><strong>String Length:</strong> Uses only the length of words</li>
+                    <li><strong>First Character:</strong> Uses only the first character of words</li>
+                    <li><strong>First + Last Character:</strong> Combines first and last characters</li>
+                    <li><strong>Character Sum:</strong> Sums all character values</li>
+                    <li><strong>Random:</strong> Creates pseudo-random but deterministic patterns</li>
+                </ul>
+                
+                <h3>Applications</h3>
+                <p>HashMapper can be used for authorship attribution, plagiarism detection, text categorization, and visual data analysis.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>HashMapper: Visual Text Fingerprinting System</p>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
