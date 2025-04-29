@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HashMapper - Text to Image Fingerprints</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>{{ title|default('HashMapper - Text to Image Fingerprints') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
@@ -24,36 +24,34 @@
             <div id="fingerprint" class="tab-pane active">
                 <div class="input-panel">
                     <h2>Text Input</h2>
-                    <textarea id="text-input" placeholder="Enter text to generate a fingerprint..."></textarea>
+                    <textarea id="text-input" placeholder="Enter text to generate a fingerprint...">{{ default_text|default('It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness...') }}</textarea>
                     
                     <div class="parameters">
                         <div class="parameter">
                             <label for="hash-function">Hash Function:</label>
                             <select id="hash-function">
-                                <option selected>String Length</option>
-                                <option>First Character</option>
-                                <option>First + Last Character</option>
-                                <option>Character Sum</option>
-                                <option>Random</option>
+                                {% for hash_func in hash_functions|default(['String Length', 'First Character', 'First + Last Character', 'Character Sum', 'Random']) %}
+                                <option {% if loop.first %}selected{% endif %}>{{ hash_func }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         
                         <div class="parameter">
                             <label for="map-size">HashMap Size:</label>
-                            <input type="range" id="map-size" min="16" max="512" step="16" value="128">
-                            <span class="value-display">128</span>
+                            <input type="range" id="map-size" min="16" max="512" step="16" value="{{ default_map_size|default('128') }}">
+                            <span class="value-display">{{ default_map_size|default('128') }}</span>
                         </div>
                         
                         <div class="parameter">
                             <label for="salt-level">Salt Level:</label>
-                            <input type="range" id="salt-level" min="0" max="100" value="5">
-                            <span class="value-display">5%</span>
+                            <input type="range" id="salt-level" min="0" max="100" value="{{ default_salt_level|default('5') }}">
+                            <span class="value-display">{{ default_salt_level|default('5') }}%</span>
                         </div>
                         
                         <div class="parameter">
                             <label for="smooth-radius">Smooth Radius:</label>
-                            <input type="range" id="smooth-radius" min="0" max="10" value="2">
-                            <span class="value-display">2</span>
+                            <input type="range" id="smooth-radius" min="0" max="10" value="{{ default_smooth_radius|default('2') }}">
+                            <span class="value-display">{{ default_smooth_radius|default('2') }}</span>
                         </div>
                     </div>
                     
@@ -91,13 +89,24 @@
                 <p>Run experiments to analyze HashMap behavior with different configurations.</p>
                 
                 <div class="experiment-options">
-                    <button class="experiment-button" data-type="collision">Collision Analysis</button>
-                    <button class="experiment-button" data-type="lookup">Lookup Performance</button>
-                    <button class="experiment-button" data-type="distribution">Bucket Distribution</button>
-                    <button class="experiment-button" data-type="hashfunction">Hash Function Comparison</button>
+                    {% for experiment in experiments|default([
+                        {'type': 'collision', 'title': 'Collision Analysis'},
+                        {'type': 'lookup', 'title': 'Lookup Performance'},
+                        {'type': 'distribution', 'title': 'Bucket Distribution'},
+                        {'type': 'hashFunction', 'title': 'Hash Function Comparison'},
+                        {'type': 'comparison', 'title': 'HashMap Comparison'},
+                        {'type': 'textFingerprint', 'title': 'Text Fingerprint Analysis'}
+                    ]) %}
+                    <button class="experiment-button" data-type="{{ experiment.type }}">{{ experiment.title }}</button>
+                    {% endfor %}
                 </div>
                 
-                <div id="experiment-results" class="experiment-results"></div>
+                <div id="experiment-results" class="experiment-results hidden">
+                    <h3 id="experiment-title"></h3>
+                    <div id="experiment-visualization">
+                        <img id="experiment-image" alt="Experiment visualization">
+                    </div>
+                </div>
                 
                 <div id="experiment-loading" class="loading-panel hidden">
                     <div class="spinner"></div>
@@ -115,23 +124,37 @@
                 
                 <h3>Hash Functions</h3>
                 <ul>
-                    <li><strong>String Length:</strong> Uses only the length of words</li>
-                    <li><strong>First Character:</strong> Uses only the first character of words</li>
-                    <li><strong>First + Last Character:</strong> Combines first and last characters</li>
-                    <li><strong>Character Sum:</strong> Sums all character values</li>
-                    <li><strong>Random:</strong> Creates pseudo-random but deterministic patterns</li>
+                    {% for hash_func in hash_function_descriptions|default([
+                        {'name': 'String Length', 'description': 'Uses only the length of words'},
+                        {'name': 'First Character', 'description': 'Uses only the first character of words'},
+                        {'name': 'First + Last Character', 'description': 'Combines first and last characters'},
+                        {'name': 'Character Sum', 'description': 'Sums all character values'},
+                        {'name': 'Random', 'description': 'Creates pseudo-random but deterministic patterns'}
+                    ]) %}
+                    <li><strong>{{ hash_func.name }}:</strong> {{ hash_func.description }}</li>
+                    {% endfor %}
                 </ul>
                 
                 <h3>Applications</h3>
                 <p>HashMapper can be used for authorship attribution, plagiarism detection, text categorization, and visual data analysis.</p>
+                
+                {% if additional_info %}
+                <h3>Additional Information</h3>
+                <div class="additional-info">
+                    {{ additional_info|safe }}
+                </div>
+                {% endif %}
             </div>
         </div>
     </main>
 
     <footer>
         <p>HashMapper: Visual Text Fingerprinting System</p>
+        {% if version %}
+        <p class="version">Version {{ version }}</p>
+        {% endif %}
     </footer>
 
-    <script src="/static/js/main.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
