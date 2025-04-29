@@ -178,94 +178,125 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Experiment buttons
-    const experimentButtons = document.querySelectorAll('.experiment-button');
-    const experimentResults = document.getElementById('experiment-results');
-    const experimentLoading = document.getElementById('experiment-loading');
-    
-    
-    experimentButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const experimentType = button.dataset.type;
-            debugLog('Experiment button clicked:', experimentType);
+    // Improved experiment button handling
+const experimentButtons = document.querySelectorAll('.experiment-button');
+const experimentResults = document.getElementById('experiment-results');
+const experimentLoading = document.getElementById('experiment-loading');
+
+experimentButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const experimentType = button.dataset.type;
+        debugLog('Experiment button clicked:', experimentType);
+        
+        // Show loading state
+        experimentResults.classList.add('hidden');
+        experimentLoading.classList.remove('hidden');
+        experimentButtons.forEach(btn => btn.disabled = true);
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('type', experimentType);
+        
+        debugLog('Sending request to /api/run-experiment');
+        
+        // Send request with improved error handling
+        fetch('/api/run-experiment', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            debugLog('Response status:', response.status);
+            debugLog('Response headers:', response.headers);
             
-            // Show loading state
-            experimentResults.classList.add('hidden');
-            experimentLoading.classList.remove('hidden');
-            experimentButtons.forEach(btn => btn.disabled = true);
-            
-            // Create form data
-            const formData = new FormData();
-            formData.append('type', experimentType);
-            
-            debugLog('Sending request to /api/run-experiment');
-            
-            // Send request with improved error handling
-            fetch('/api/run-experiment', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                debugLog('Response status:', response.status);
-                debugLog('Response headers:', response.headers);
-                
-                if (!response.ok) {
-                    throw new Error(`Server responded with status: ${response.status}`);
-                }
-                
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                debugLog('Content type:', contentType);
-                
-                if (!contentType || !contentType.includes('application/json')) {
-                    debugLog('Response is not JSON');
-                    return response.text().then(text => {
-                        debugLog('Response text:', text);
-                        throw new Error('Server did not return JSON');
-                    });
-                }
-                
-                return response.json().catch(error => {
-                    debugLog('JSON parse error:', error);
-                    return response.text().then(text => {
-                        debugLog('Raw response text:', text);
-                        throw new Error('Error parsing JSON response');
-                    });
+            if (!response.ok) {
+                return response.text().then(text => {
+                    debugLog('Error response text:', text);
+                    
+                    // Try to extract JSON error message if available
+                    try {
+                        const errorData = JSON.parse(text);
+                        if (errorData.error) {
+                            throw new Error(errorData.error);
+                        }
+                    } catch (jsonError) {
+                        // If not JSON or no error field, use status text
+                        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                    }
                 });
-            })
-            .then(data => {
-                debugLog('Response data received:', data);
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                // Validate data
-                if (!data.image) {
-                    throw new Error('Incomplete data received from server');
-                }
-                
-                // Set experiment title
-                document.getElementById('experiment-title').textContent = getExperimentTitle(experimentType);
-                
-                // Display experiment image
-                document.getElementById('experiment-image').src = 'data:image/png;base64,' + data.image;
-                
-                // Show results
-                experimentLoading.classList.add('hidden');
-                experimentResults.classList.remove('hidden');
-                debugLog('Experiment results displayed successfully');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error: ' + error.message);
-                experimentLoading.classList.add('hidden');
-            })
-            .finally(() => {
-                experimentButtons.forEach(btn => btn.disabled = false);
+            }
+            
+            // Check content type
+            const contentType = response.headers.get('content-type');
+            debugLog('Content type:', contentType);
+            
+            if (!contentType || !contentType.includes('application/json')) {
+                debugLog('Response is not JSON');
+                return response.text().then(text => {
+                    debugLog('Response text:', text);
+                    throw new Error('Server did not return JSON');
+                });
+            }
+            
+            return response.json().catch(error => {
+                debugLog('JSON parse error:', error);
+                return response.text().then(text => {
+                    debugLog('Raw response text:', text);
+                    throw new Error('Error parsing JSON response');
+                });
             });
+        })
+        .then(data => {
+            debugLog('Response data received:', data);
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Validate data
+            if (!data.image) {
+                throw new Error('Incomplete data received from server');
+            }
+            
+            // Set experiment title
+            document.getElementById('experiment-title').textContent = getExperimentTitle(experimentType);
+            
+            // Display experiment image
+            const imgElement = document.getElementById('experiment-image');
+            imgElement.src = 'data:image/png;base64,' + data.image;
+            imgElement.onerror = function() {
+                debugLog('Error loading image from base64 data');
+                throw new Error('Error displaying experiment image. Base64 data may be corrupted.');
+            };
+            
+            // Show results
+            experimentLoading.classList.add('hidden');
+            experimentResults.classList.remove('hidden');
+            debugLog('Experiment results displayed successfully');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            
+            // Create a more detailed error message
+            let errorMessage = error.message || 'Unknown error occurred';
+            alert('Error: ' + errorMessage);
+            
+            experimentLoading.classList.add('hidden');
+            
+            // Create and show an error message in the results area
+            experimentResults.innerHTML = `
+                <div class="error-message">
+                    <h3>Error Running Experiment</h3>
+                    <p>${errorMessage}</p>
+                    <p>Please check the browser console and server logs for more details.</p>
+                </div>
+            `;
+            experimentResults.classList.remove('hidden');
+        })
+        .finally(() => {
+            experimentButtons.forEach(btn => btn.disabled = false);
         });
     });
-    
+});
     // Helper functions for experiment titles
     function getExperimentTitle(type) {
         switch (type) {
