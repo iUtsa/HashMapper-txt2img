@@ -1,6 +1,6 @@
 HashFunction,Collisions,MaxBucketSize,EmptyBuckets
-String Length,9989,939,117
-First Character,9938,190,66
-First + Last Character,9872,148,0
-Character Sum,9872,100,0
-Random,9872,112,0
+String Length,9989,933,117
+First Character,9938,195,66
+First + Last Character,9872,143,0
+Character Sum,9872,101,0
+Random,9872,109,0
